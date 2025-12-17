@@ -5,15 +5,9 @@ from a_star.algorithms import (
     find_paths,
 )
 from a_star.typing import (
-    mixed_item_type,
-    np_item_type,
     np_state_type,
-    goal_cb_type,
-    next_cb_type,
-    heur_cb_type,
 )
 from rich import print
-from weird_maze_2.typing import state_cb_to_text
 from weird_maze_2.visualizer import animate_board
 
 
@@ -32,7 +26,7 @@ class tile_type:
     @staticmethod
     def jump_policy(n: int):
         # modify to show different solutions (i.e. n == 0)
-        return True
+        return n == 3
 
     @staticmethod
     def contains(value: int, flag: int):
