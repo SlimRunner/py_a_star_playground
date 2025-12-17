@@ -103,6 +103,8 @@ def try_move(state: np_state_type, position: tuple[int, int], delta: tuple[int, 
             if not (0 <= y3 < rows and 0 <= x3 < cols):
                 return None
             c = state[y3, x3]
+            if tt.contains(c, tt.abyss_hole):
+                return None
 
             n_jump = 0
             if tt.contains(a, tt.green_tile):
