@@ -31,6 +31,7 @@ class tile_type:
 
     @staticmethod
     def jump_policy(n: int):
+        # modify to show different solutions (i.e. n == 0)
         return True
 
     @staticmethod
