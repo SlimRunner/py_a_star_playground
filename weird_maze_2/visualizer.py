@@ -18,6 +18,7 @@ def prettyState(state: np_state_type, state_parser: state_cb_to_text):
     lines = []
     row = state.shape[0]
     col = state.shape[1]
+    lines.append("")
     lines.append(" " + "▁" * col * span)
     for i in range(row):
         lines.append("")
@@ -37,15 +38,19 @@ def curses_callback(
         raise ValueError("non solvable game")
 
     stdscr.clear()
-    stdscr.addstr(0, 0, prettyState(states[0], state_parser))
+    text = prettyState(states[0], state_parser)
+    text += "\niter: 0"
+    stdscr.addstr(0, 0, text)
     stdscr.refresh()
     time.sleep(1)
 
-    for state in states:
+    for i, state in enumerate(states):
         stdscr.clear()
-        stdscr.addstr(0, 0, prettyState(state, state_parser))
+        text = prettyState(state, state_parser)
+        text += f"\niter: {i + 1}"
+        stdscr.addstr(0, 0, text)
         stdscr.refresh()
-        time.sleep(0.2)
+        time.sleep(0.4)
     stdscr.addstr(0, 0, "Press any key to end")
     stdscr.getch()
 

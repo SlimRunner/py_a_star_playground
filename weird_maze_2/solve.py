@@ -38,6 +38,10 @@ class tile_type:
         return value & flag == flag
 
     @staticmethod
+    def matches(value: int, flag: int):
+        return value == flag
+
+    @staticmethod
     def remap(v: int):
         p1_mask = tile_type.occupied if (v > 9) else 0
         match (v % 10, p1_mask):
@@ -63,12 +67,22 @@ class tile_type:
         pad = " " * (s - 1)
         tt = tile_type
         match v:
-            case a if tt.contains(a, tt.abyss_hole):
+            case a if tt.matches(a, tt.abyss_hole):
                 return pad + "█"
+            case a if tt.matches(a, tt.abyss_bridge):
+                return pad + "■"
+            case a if tt.matches(a, tt.abyss_trap):
+                return pad + "▓"
             case a if tt.contains(a, tt.occupied):
                 return pad + "▲"
+            case a if tt.contains(a, tt.goal_tile):
+                return pad + "┼"
+            case a if tt.contains(a, tt.green_tile):
+                return pad + "·"
+            case a if tt.contains(a, tt.purple_tile):
+                return pad + "·"
             case _:
-                return pad + "░"
+                return pad + "·"
 
 
 def get_location(state: np_state_type):
