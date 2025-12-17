@@ -1,0 +1,4 @@
+numpy
+typer>=0.9.0 # quick CLI
+rich>=12.6.0 # nice colored prints
+windows-curses; sys_platform == "win32"
