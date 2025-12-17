@@ -95,5 +95,4 @@ def find_paths(
 
         return path, node_generated, node_expanded
     else:
-        print("no solution found")
         return None, node_generated, node_expanded
