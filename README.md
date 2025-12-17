@@ -1,6 +1,6 @@
 # A* Playground
 
-Just random puzzles solved using Dijkstra or A*. I did not write the code in [algorithms.py](./a_star/algorithms.py). It's origin is uncertain. It was provided to me as an assignment.
+Just random puzzles solved using Dijkstra or A*. I did not write the code in [algorithms.py](./a_star/algorithms.py). It's origin is uncertain. It was provided to me as part of an assignment skeleton code. I repurposed it and added type hinting.
 
 It is not intended to be fast, but allow to easily benchmark heuristics by counting nodes generated and nodes expanded.
 
