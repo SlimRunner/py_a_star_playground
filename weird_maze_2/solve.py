@@ -182,12 +182,15 @@ def solve_maze():
     path, node_generated, node_expanded = find_paths(
         maze, goal_test, next_states, lambda x: 0
     )
+    stats = {
+        "nodes generated": node_generated,
+        "nodes expanded": node_expanded,
+    }
+
+    if path is None:
+        print("[yellow]no solution found[/yellow]")
+        print(stats)
+        return
 
     animate_board(path, tile_type.to_string)
-
-    print(
-        {
-            "nodes generated": node_generated,
-            "nodes expanded": node_expanded,
-        }
-    )
+    print(stats)
