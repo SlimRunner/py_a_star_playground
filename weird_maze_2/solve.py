@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import numpy.typing as npt
 
@@ -5,10 +6,16 @@ from a_star.algorithms import (
     find_paths,
 )
 from a_star.typing import (
+    mixed_item_type,
     np_state_type,
 )
 from rich import print
-from weird_maze_2.visualizer import animate_board
+from weird_maze_2.typing import (
+    jump_policy_cb,
+    tile_search_cb,
+)
+from weird_maze_2.visualizer import (animate_board, prettyState)
+from utils.file_ops import serve_input
 
 
 class tile_type:
@@ -22,11 +29,6 @@ class tile_type:
     abyss_bridge = bridge | abyss_hole
     abyss_trap = trap | abyss_hole
     occupied = 0x80
-
-    @staticmethod
-    def jump_policy(n: int):
-        # modify to show different solutions (i.e. n == 0)
-        return n == 3
 
     @staticmethod
     def contains(value: int, flag: int):
@@ -88,12 +90,25 @@ def get_location(state: np_state_type):
     return (r, c)
 
 
+def find_tile(state: np_state_type, cb: tile_search_cb):
+    result = np.argwhere(cb(state))
+    assert result.shape == (1, 2), f"Location should be exactly 1: {result.shape}"
+    r: int = result[0, 0]
+    c: int = result[0, 1]
+    return (r, c)
+
+
 def goal_test(state: np_state_type):
     loc = get_location(state)
     return tile_type.contains(state[loc], tile_type.goal_tile)
 
 
-def try_move(state: np_state_type, position: tuple[int, int], delta: tuple[int, int]):
+def try_move(
+    state: np_state_type,
+    position: tuple[int, int],
+    delta: tuple[int, int],
+    policy: jump_policy_cb,
+):
     tt = tile_type
     rows, cols = state.shape
     y1, x1 = position
@@ -123,7 +138,7 @@ def try_move(state: np_state_type, position: tuple[int, int], delta: tuple[int, 
             if tt.contains(c, tt.purple_tile):
                 n_jump += 1
 
-            if tt.jump_policy(n_jump):
+            if policy(n_jump):
                 st_next = state.copy()
                 st_next[y1, x1] = state[y1, x1] & ~tt.occupied
                 st_next[y3, x3] = state[y3, x3] | tt.occupied
@@ -141,44 +156,53 @@ def try_move(state: np_state_type, position: tuple[int, int], delta: tuple[int, 
             raise RuntimeError("Impossible state transition")
 
 
-def next_states(state: npt.NDArray[np.uint8]):
-    loc = get_location(state)
-    neighbors: list[np_state_type] = []
-    for delta in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
-        st_next = try_move(state, loc, delta)
-        if st_next is not None:
-            neighbors.append(st_next)
+def gen_successor_cb(policy: jump_policy_cb):
+    def next_states(state: npt.NDArray[np.uint8]):
+        loc = get_location(state)
+        neighbors: list[np_state_type] = []
+        for delta in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
+            st_next = try_move(state, loc, delta, policy)
+            if st_next is not None:
+                neighbors.append(st_next)
 
-    return tuple(neighbors)
+        return tuple(neighbors)
+
+    return next_states
 
 
-def solve_maze():
-    maze_raw = [
-        [1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 5, 3, 1, 1, 2],
-        [1, 11, 1, 4, 6, 5, 4, 5, 6, 5, 4, 6, 4, 1, 1],
-        [3, 1, 1, 5, 2, 1, 3, 4, 3, 2, 1, 2, 5, 3, 1],
-        [4, 6, 1, 4, 4, 6, 4, 4, 5, 4, 6, 1, 4, 1, 1],
-        [1, 1, 2, 5, 3, 4, 1, 1, 2, 3, 4, 2, 4, 1, 2],
-        [2, 1, 1, 4, 2, 4, 3, 1, 1, 1, 4, 6, 4, 4, 5],
-        [5, 6, 6, 4, 4, 4, 4, 4, 4, 5, 4, 1, 1, 1, 3],
-        [3, 1, 3, 5, 2, 1, 2, 3, 5, 3, 5, 3, 1, 1, 1],
-        [1, 1, 1, 4, 4, 4, 4, 1, 4, 4, 4, 1, 1, 1, 2],
-        [1, 1, 1, 1, 3, 4, 3, 2, 5, 1, 4, 6, 4, 4, 5],
-        [3, 1, 1, 2, 1, 4, 4, 6, 4, 1, 2, 1, 1, 1, 3],
-        [4, 5, 6, 5, 6, 4, 2, 2, 4, 4, 5, 6, 4, 6, 5],
-        [1, 1, 5, 3, 1, 1, 1, 1, 6, 2, 3, 6, 3, 1, 3],
-        [2, 1, 6, 4, 5, 4, 1, 2, 4, 1, 1, 4, 1, 0, 1],
-        [3, 1, 1, 1, 3, 5, 2, 1, 6, 3, 2, 5, 3, 1, 1],
-    ]
+def heuristic(state: np_state_type) -> mixed_item_type:
+    y1, x1 = get_location(state)
+    y2, x2 = find_tile(state, lambda x: x & tile_type.goal_tile)
+    x3 = abs(x2 - x1)
+    y3 = abs(y2 - y1)
+    return y3 + x3
+
+
+def solve_maze(jump_policy: int, anim: bool):
+    puzzle_path = serve_input("./puzzles", "weird_maze_2")
+    if puzzle_path is None:
+        raise ValueError(f"File selection was canceled")
+
+    maze_raw: list[list[int]] = []
+    with open(puzzle_path) as file:
+        line = file.readline()
+        while line:
+            maze_raw.append([int(s) for s in line.split(",")])
+            line = file.readline()
+
     maze: npt.NDArray[np.uint8] = np.array(
         [[tile_type.remap(c) for c in r] for r in maze_raw]
     )
     path, node_generated, node_expanded = find_paths(
-        maze, goal_test, next_states, lambda x: 0
+        maze,
+        goal_test,
+        gen_successor_cb(lambda x: x == jump_policy),
+        heuristic,
     )
     stats = {
         "nodes generated": node_generated,
         "nodes expanded": node_expanded,
+        "path length": len(path) if path else None,
     }
 
     if path is None:
@@ -186,5 +210,8 @@ def solve_maze():
         print(stats)
         return
 
-    animate_board(path, tile_type.to_string)
+    print(prettyState(path[0], tile_type.to_string))
+
+    if anim:
+        animate_board(path, tile_type.to_string)
     print(stats)

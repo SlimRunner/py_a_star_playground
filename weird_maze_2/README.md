@@ -26,8 +26,8 @@ Valid routes to the end are when `n` equals 0, 1, 2, and 3 throughout the entire
 
 ## Visualization
 
-The solver uses curses to show an animation of the solution path. Currently it has no heuristic (i.e.  homogeneous cost).
+The solver uses curses to show an animation of the solution path.
 
-The valid value of `n` is currently hardcoded. To set it go to [line 35 in solve.py](./solve.py#35) in this directory. Use comment as guide.
+The valid value of `n` can be passed as parameter to the function.
 
-The maze can be modified on [line 162 in solve.py](./solve.py#162). Currently it is hardcoded.
+The mazes can be added in the `./puzzles` directory. Use the naming convention of `weird_maze_2*` and the program will automatically prompt it.
