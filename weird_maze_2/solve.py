@@ -191,13 +191,14 @@ def solve_maze(jump_policy: int, anim: bool):
 
     maze: npt.NDArray[np.uint8] = np.array(
         [[tile_type.remap(c) for c in r] for r in maze_raw]
-    )
+
     path, node_generated, node_expanded = find_paths(
         maze,
         goal_test,
         gen_successor_cb(lambda x: x == jump_policy),
         heuristic,
     )
+
     stats = {
         "nodes generated": node_generated,
         "nodes expanded": node_expanded,

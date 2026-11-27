@@ -241,6 +241,7 @@ def misplaced_boxes_heuristic(s: np_state_type) -> mixed_item_type:
     # return the frequency of box
     return countmap.get(tile_type.box, 0)
 
+
 def in_range_w_dims(size: tuple[int, int], pos: tuple[int, int]):
     """
     determines if position is in bounds of numpy 2d array but using only
@@ -251,6 +252,7 @@ def in_range_w_dims(size: tuple[int, int], pos: tuple[int, int]):
     :return: `True` if position is in-bound; `False` otherwise
     """
     return 0 <= pos[0] < size[0] and 0 <= pos[1] < size[1]
+
 
 def sideWalled(s: np_state_type, here: tuple[int, int], wall: tuple[int, int]):
     """
@@ -372,12 +374,13 @@ def sideWalled(s: np_state_type, here: tuple[int, int], wall: tuple[int, int]):
 
     assert False
 
+
 def isTrapped(s: np_state_type, here: tuple[int, int]):
     """
     :param s: 2d numpy array of integers representing a sokoban state
     :param here: location of box to be probed
     :return: `True` if box is trapped (i.e. cannot reach a goal).
-        `False` otherwise
+             `False` otherwise
 
     This functions perform three different tests
 
@@ -501,6 +504,7 @@ def isTrapped(s: np_state_type, here: tuple[int, int]):
 
     return False
 
+
 def manDist(a: tuple[int, int], b: tuple[int, int]):
     """
     Computes the standard Manhattan distance where `a` and `b` are
@@ -517,7 +521,26 @@ def manDist(a: tuple[int, int], b: tuple[int, int]):
     # adds the distance needed to push around a corner
     return vert + horz
 
+
 def custom_heuristic(s):
+    """
+    :param s: 2d numpy array of integers representing a sokoban state
+    :return: and admissible score of the game or infinity if the game is
+             deemed unwinnable.
+
+    This function performs four heuristics
+    - sum of manhattan distances from each misplaced box to closest goal
+    - checks if at least one box is trapped by wall-only with L-traps,
+      T-traps, or cross-traps (insoluble)
+    - checks if at least one box forms part of an cluster trap (2x2). To
+      make it easier to implement boxes on goals are ignored for this
+      check. See `isTrapped` for an extended explanation.
+    - checks if a box if flush against a wall and it is optimistically
+      impossible to push away from it. Meaning, there is only wall
+      parallel to the box and there are no free goals next to the wall.
+      It uses DFS just along the wall strip and the corridor next to it
+      in all cardinal directions that have a wall in it.
+    """
     rows = s.shape[0]
     cols = s.shape[1]
     boxes = []
@@ -541,8 +564,8 @@ def custom_heuristic(s):
 
     distSum = 0
 
-    # sum of shortest manhattan distances per box to considering each
-    # goal. Squared time complexity.
+    # sum of shortest manhattan distances per box to closest goal.
+    # Squared time complexity.
     for b in boxes:
         closest = float("inf")
         for g in goals:
@@ -550,6 +573,7 @@ def custom_heuristic(s):
         distSum += closest
 
     return distSum
+
 
 def solve_sokoban(anim: bool):
     puzzle_path = serve_input("./puzzles", "sokoban")
