@@ -201,7 +201,7 @@ def solve_maze(jump_policy: int, anim: bool):
     stats = {
         "nodes generated": node_generated,
         "nodes expanded": node_expanded,
-        "path length": len(path) if path else None,
+        "path length": len(path) - 1 if path else None,
     }
 
     if path is None:

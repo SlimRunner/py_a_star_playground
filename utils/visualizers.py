@@ -1,6 +1,7 @@
 import curses
 import numpy as np
 import time
+import locale
 
 from a_star.typing import (
     np_item_type,
@@ -37,23 +38,20 @@ def curses_callback(
     if states is None:
         raise ValueError("non solvable game")
 
-    stdscr.clear()
-    text = prettyState(states[0], state_parser)
-    text += "\niter: 0"
-    stdscr.addstr(0, 0, text)
-    stdscr.refresh()
-    time.sleep(1)
+    sleep_time = 1
 
     for i, state in enumerate(states):
         stdscr.clear()
         text = prettyState(state, state_parser)
-        text += f"\niter: {i + 1}"
+        text += f"\niter: {i}"
         stdscr.addstr(0, 0, text)
         stdscr.refresh()
-        time.sleep(0.4)
+        time.sleep(sleep_time)
+        sleep_time = 0.4
     stdscr.addstr(0, 0, "Press any key to end")
     stdscr.getch()
 
 
 def animate_board(state: list_of_states, state_parser: state_cb_to_text):
+    locale.setlocale(locale.LC_ALL)
     curses.wrapper(curses_callback, state, state_parser)
