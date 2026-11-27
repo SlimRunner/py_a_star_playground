@@ -10,5 +10,12 @@ def maze_001(jump_policy: int, anim: bool = False):
     solve_maze(jump_policy, anim)
 
 
+@app.command()
+def sokoban(anim: bool = False):
+    from sokoban.solve import solve_sokoban
+
+    solve_sokoban(anim)
+
+
 if __name__ == "__main__":
     app()
