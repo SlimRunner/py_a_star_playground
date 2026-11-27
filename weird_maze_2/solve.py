@@ -14,7 +14,7 @@ from weird_maze_2.typing import (
     jump_policy_cb,
     tile_search_cb,
 )
-from weird_maze_2.visualizer import animate_board
+from weird_maze_2.visualizer import (animate_board, prettyState)
 from utils.file_ops import serve_input
 
 
@@ -209,6 +209,8 @@ def solve_maze(jump_policy: int, anim: bool):
         print("[yellow]no solution found[/yellow]")
         print(stats)
         return
+
+    print(prettyState(path[0], tile_type.to_string))
 
     if anim:
         animate_board(path, tile_type.to_string)
