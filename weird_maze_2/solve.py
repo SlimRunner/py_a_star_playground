@@ -31,11 +31,6 @@ class tile_type:
     occupied = 0x80
 
     @staticmethod
-    def jump_policy(n: int):
-        # modify to show different solutions (i.e. n == 0)
-        return n == 3
-
-    @staticmethod
     def contains(value: int, flag: int):
         return value & flag == flag
 
