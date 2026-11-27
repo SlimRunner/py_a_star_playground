@@ -1,4 +1,5 @@
 numpy
-typer>=0.9.0 # quick CLI
+questionary
 rich>=12.6.0 # nice colored prints
+typer>=0.9.0 # quick CLI
 windows-curses; sys_platform == "win32"
