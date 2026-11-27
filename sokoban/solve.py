@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 from utils.file_ops import serve_input
+from utils.shared import select_heuristic, read_int_matrix
 from rich import print
 from utils.visualizers import animate_board, prettyState
 
@@ -31,7 +32,6 @@ class tile_type:
                 return True
             case _:
                 return False
-            
 
     @staticmethod
     def contains(value: int, flag: int):
@@ -518,7 +518,6 @@ def manDist(a: tuple[int, int], b: tuple[int, int]):
     dy = a[1] - b[1]
     vert = abs(dx)
     horz = abs(dy)
-    # adds the distance needed to push around a corner
     return vert + horz
 
 
@@ -580,26 +579,22 @@ def solve_sokoban(anim: bool):
     if puzzle_path is None:
         raise ValueError(f"File selection was canceled")
 
-    maze_raw: list[list[int]] = []
-    with open(puzzle_path) as file:
-        line = file.readline()
-        while line:
-            if line.startswith("#"):
-                print(line.lstrip("#").lstrip(" "))
-                line = file.readline()
-                continue
-            maze_raw.append([int(s) for s in line.split(",")])
-            line = file.readline()
-
+    maze_raw = read_int_matrix(puzzle_path)
     maze: np_state_type = np.array([[tile_type.remap(c) for c in r] for r in maze_raw])
 
-    heuristic: heur_cb_type = lambda x: 0
+    heuristic: heur_cb_type = select_heuristic(
+        {
+            "compound (fastest)": custom_heuristic,
+            "misplaced boxes": misplaced_boxes_heuristic,
+            "none": lambda x: 0,
+        }
+    )
 
     path, node_generated, node_expanded = find_paths(
         maze,
         goal_test,
         next_states,
-        custom_heuristic,
+        heuristic,
     )
 
     stats = {

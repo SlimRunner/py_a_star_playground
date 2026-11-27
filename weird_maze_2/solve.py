@@ -7,14 +7,16 @@ from a_star.algorithms import (
 from a_star.typing import (
     mixed_item_type,
     np_state_type,
+    heur_cb_type,
 )
 from rich import print
 from weird_maze_2.typing import (
     jump_policy_cb,
     tile_search_cb,
 )
-from utils.visualizers import (animate_board, prettyState)
+from utils.visualizers import animate_board, prettyState
 from utils.file_ops import serve_input
+from utils.shared import select_heuristic, read_int_matrix
 
 
 class tile_type:
@@ -169,7 +171,7 @@ def gen_successor_cb(policy: jump_policy_cb):
     return next_states
 
 
-def heuristic(state: np_state_type) -> mixed_item_type:
+def mann_dist_heuristic(state: np_state_type) -> mixed_item_type:
     y1, x1 = get_location(state)
     y2, x2 = find_tile(state, lambda x: x & tile_type.goal_tile)
     x3 = abs(x2 - x1)
@@ -182,15 +184,15 @@ def solve_maze(jump_policy: int, anim: bool):
     if puzzle_path is None:
         raise ValueError(f"File selection was canceled")
 
-    maze_raw: list[list[int]] = []
-    with open(puzzle_path) as file:
-        line = file.readline()
-        while line:
-            maze_raw.append([int(s) for s in line.split(",")])
-            line = file.readline()
+    maze_raw = read_int_matrix(puzzle_path)
+    maze: np_state_type = np.array([[tile_type.remap(c) for c in r] for r in maze_raw])
 
-    maze: npt.NDArray[np.uint8] = np.array(
-        [[tile_type.remap(c) for c in r] for r in maze_raw]
+    heuristic: heur_cb_type = select_heuristic(
+        {
+            "manhattan distance": mann_dist_heuristic,
+            "none": lambda x: 0,
+        }
+    )
 
     path, node_generated, node_expanded = find_paths(
         maze,
@@ -212,6 +214,6 @@ def solve_maze(jump_policy: int, anim: bool):
 
     print(prettyState(path[0], tile_type.to_string))
 
+    print(stats)
     if anim:
         animate_board(path, tile_type.to_string)
-    print(stats)
