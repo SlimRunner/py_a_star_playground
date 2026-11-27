@@ -1,4 +1,3 @@
-import os
 import numpy as np
 import numpy.typing as npt
 
@@ -14,7 +13,7 @@ from weird_maze_2.typing import (
     jump_policy_cb,
     tile_search_cb,
 )
-from weird_maze_2.visualizer import (animate_board, prettyState)
+from utils.visualizers import (animate_board, prettyState)
 from utils.file_ops import serve_input
 
 
