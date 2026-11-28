@@ -176,7 +176,7 @@ def mann_dist_heuristic(state: np_state_type) -> mixed_item_type:
     y2, x2 = find_tile(state, lambda x: x & tile_type.goal_tile)
     x3 = abs(x2 - x1)
     y3 = abs(y2 - y1)
-    return y3 + x3
+    return (y3 + x3 + 1) // 2
 
 
 def solve_maze(jump_policy: int, anim: bool):
